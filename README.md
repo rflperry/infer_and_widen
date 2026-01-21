@@ -1,2 +1,2 @@
-# Infer-and-widen versus split-and-condition: two tales of selective inference
-Code to recreate the figures in "Infer-and-widen versus split-and-condition: two tales of selective inference, 2024"
+# Infer-and-widen, or not?
+Code to recreate the figures in ["Infer-and-widen, or not?"](https://arxiv.org/abs/2408.06323).
