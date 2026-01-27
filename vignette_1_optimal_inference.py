@@ -1,6 +1,4 @@
 # %%
-%load_ext autoreload
-%autoreload 2
 import numpy as np
 import scipy
 import pandas as pd
@@ -121,7 +119,7 @@ def simulate_rep(mu, rep):
 # simulation params
 n_reps = 1000
 alphas = np.array(
-    [0.05, 0.075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
+    [0.0125, 0.025, 0.05, 0.075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
 )
 # alphas = np.asarray([0.1, 0.5, 0.9, 0.95])
 n = 100
@@ -132,9 +130,9 @@ n = 100
 results = []
 ci_names = ["naive", "zoom_stepdown", "SI", "LSI", "cond", "hybrid"]
 
-C = 4
+C = 8
 Sigma = np.eye(n)
-winner_mus = [0, C * max_z_width(Sigma, 0.01)]
+winner_mus = [0, C * max_z_width(Sigma, 0.05)]
 
 np.random.seed(42)
 for mu in winner_mus:
@@ -167,4 +165,4 @@ df.to_csv("data/vignette_1_optimal_inference_results.csv", index=False)
 
 # %%
 for mu in winner_mus:
-    plot_oracle(df[df['mu'] == mu], label=np.round(mu, 2))
+    plot_oracle(df)

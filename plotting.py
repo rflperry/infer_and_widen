@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_oracle(df_full, conditional=False, save_fig=True):
+def plot_oracle(df_full, save_fig=True):
     # _, ax = plt.subplots(figsize=(3.25, 1.75))
     # _, ax = plt.subplots(figsize=(3.6, 2.5))
     mus = df_full['mu'].unique()
@@ -49,16 +49,15 @@ def plot_oracle(df_full, conditional=False, save_fig=True):
             label="Hybrid"
         )
 
-        if conditional:
-            df_df = summary[(summary["method"] == "cond")].groupby("alpha", as_index=False).agg({"coverage": "mean", "interval_width": "median"})
-            ax.plot(
-                # df_df["coverage"][::-1],
-                1 - df_df['alpha'][::-1],
-                df_df["interval_width"][::-1],
-                color="#984ea3", linestyle="dashed",
-                linewidth=2,
-                label="Conditional"
-            )
+        df_df = summary[(summary["method"] == "cond")].groupby("alpha", as_index=False).agg({"coverage": "mean", "interval_width": "mean"})
+        ax.plot(
+            # df_df["coverage"][::-1],
+            1 - df_df['alpha'][::-1],
+            df_df["interval_width"][::-1],
+            color="#984ea3", linestyle="dashed",
+            linewidth=2,
+            label="Conditional"
+        )
 
         df_df = summary[(summary["method"] == "zoom_stepdown")].groupby("alpha", as_index=False).agg({"coverage": "mean", "interval_width": "mean"})
         ax.plot(
