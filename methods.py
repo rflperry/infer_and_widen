@@ -1,5 +1,6 @@
 import numpy as np
-import scipy
+from scipy.optimize import brentq
+from scipy.stats import truncnorm, norm
 from utils import max_z_width, max_Xz
 from lasso_utils import all_LASSO_models_and_signs_in_box
 
@@ -40,21 +41,11 @@ def conditional_inference(
     found_u = False
 
     for mu in grid:
-        # a = scipy.stats.norm.logcdf(eta_dot_y, loc=mu, scale=sigma)
-        # b = scipy.stats.norm.logcdf(V_minus, loc=mu, scale=sigma)
-        # max_ab = np.max([a, b])
-        # num = (np.exp(a - max_ab) - np.exp(b - max_ab)) * np.exp(max_ab)
-
-        # a = scipy.stats.norm.logcdf(V_plus, loc=mu, scale=sigma)
-        # b = scipy.stats.norm.logcdf(V_minus, loc=mu, scale=sigma)
-        # max_ab = np.max([a, b])
-        # denom = (np.exp(a - max_ab) - np.exp(b - max_ab)) * np.exp(max_ab)
-
-        num = scipy.stats.norm.logcdf(eta_dot_y, loc=mu, scale=sigma) - scipy.stats.norm.logcdf(
-            V_minus, loc=mu, scale=sigma
+        num = norm.cdf((eta_dot_y - mu) / sigma) - norm.cdf(
+            (V_minus - mu) / sigma
         )
-        denom = np.exp(scipy.stats.norm.logcdf(V_plus, loc=mu, scale=sigma)) - scipy.stats.norm.logcdf(
-            V_minus, loc=mu, scale=sigma
+        denom = norm.cdf((V_plus - mu) / sigma) - norm.cdf(
+            (V_minus - mu) / sigma
         )
 
         if not found_l:
@@ -118,12 +109,12 @@ def hybrid_inference(
         V_minus_hybrid = np.maximum(V_minus, mu - SI_halfwidth)
         V_plus_hybrid = np.minimum(V_plus, mu + SI_halfwidth)
 
-        num = scipy.stats.norm.cdf((eta_dot_y - mu) / sigma) - scipy.stats.norm.cdf(
+        num = norm.cdf((eta_dot_y - mu) / sigma) - norm.cdf(
             (V_minus_hybrid - mu) / sigma
         )
-        denom = scipy.stats.norm.cdf(
+        denom = norm.cdf(
             (V_plus_hybrid - mu) / sigma
-        ) - scipy.stats.norm.cdf((V_minus_hybrid - mu) / sigma)
+        ) - norm.cdf((V_minus_hybrid - mu) / sigma)
         if not found_l:
             if num / denom < 1 - (alpha - beta) / (2 * (1 - beta)):
                 ci_l = mu
@@ -273,7 +264,7 @@ def zoom_grid(X, Sigma, alpha=0.1, simulation_draws=10000, grid_points=1000):
 # Code acquired from https://github.com/tijana-zrnic/winners-curse/blob/main/methods.py
 def zoom_union_bound(X, sigmas, alpha=0.1, grid_points=1000):
     m = len(X)
-    max_radius = scipy.stats.norm.isf(alpha / (2 * m)) * np.max(sigmas)
+    max_radius = norm.isf(alpha / (2 * m)) * np.max(sigmas)
     ihat = np.argmax(X)
     radius_grid = np.linspace(0, max_radius, grid_points)
     # lower bound
@@ -313,7 +304,7 @@ def zoom_union_bound(X, sigmas, alpha=0.1, grid_points=1000):
 def tail_bound(r, Deltas, sigmas):
     return np.sum(
         [
-            2 * scipy.stats.norm.sf(np.maximum(r, Deltas[j] / 2), scale=sigmas[j])
+            2 * norm.sf(np.maximum(r, Deltas[j] / 2), scale=sigmas[j])
             for j in range(len(Deltas))
         ]
     )
@@ -327,21 +318,60 @@ def zoom_stepdown(X, sigma, alpha=0.1):
     # lower bound
     alpha_hat = alpha
     for k in range(m):
-        r_hat_k = scipy.stats.norm.isf(alpha_hat / (2 * (m - k)), scale=sigma)
+        r_hat_k = norm.isf(alpha_hat / (2 * (m - k)), scale=sigma)
         if Deltas[k] <= 4 * r_hat_k:
             r_l = r_hat_k
             break
         else:
-            alpha_hat -= 2 * scipy.stats.norm.sf((Deltas[k] - r_hat_k) / 3, scale=sigma)
+            alpha_hat -= 2 * norm.sf((Deltas[k] - r_hat_k) / 3, scale=sigma)
     # upper bound
     alpha_hat = alpha
     for k in range(m):
-        r_hat_k = scipy.stats.norm.isf(alpha_hat / (2 * (m - k)), scale=sigma)
+        r_hat_k = norm.isf(alpha_hat / (2 * (m - k)), scale=sigma)
         if Deltas[k] <= 2 * r_hat_k:
             r_u = r_hat_k
             break
         else:
-            alpha_hat -= 2 * scipy.stats.norm.sf(
-                (Deltas[k] + scipy.stats.norm.isf(alpha / 2, scale=sigma)) / 3, scale=sigma
+            alpha_hat -= 2 * norm.sf(
+                (Deltas[k] + norm.isf(alpha / 2, scale=sigma)) / 3, scale=sigma
             )
     return [np.max(X) - r_l, np.max(X) + r_u]
+
+
+# Winner's curse: data fission with laplace noise
+def wc_laplace_fission(y, y_tr, scale = 1, alpha=0.05, sigma=1, lb=-10, ub=10):    
+    lower_tail = (y_tr < y)
+
+    def trunc_cdf(mu):
+        if lower_tail:
+            a_std = (y_tr - mu) / sigma
+            b_std = np.inf
+        else:
+            a_std = -np.inf
+            b_std = (y_tr - mu) / sigma
+        return truncnorm.cdf(y, a_std, b_std, loc=mu, scale=sigma)
+    
+    def solve_mu(p):
+        return brentq(lambda mu: trunc_cdf(mu) - p, lb, ub)
+
+    # Invert CDF
+    b = solve_mu(alpha / 2)
+    a = solve_mu(1 - alpha / 2)
+
+    sign = 1 if lower_tail else -1
+    a += sign * sigma**2 / scale
+    b += sign * sigma**2 / scale
+    
+    return np.asarray([a, b])
+
+# Winner's curse: algorithmic stability with laplace noise
+def wc_alg_stability(y_tr, n, scale = 1, alpha=0.05, sigma=1):    
+    nu = np.linspace(0, alpha, 20)
+
+    h = 2 * norm.ppf(1 - nu / (2 * n))
+    eta = h / scale
+
+    as_width = sigma * norm.ppf(1 - (alpha - nu) * np.exp(-eta) / 2)
+    as_width = as_width.min()
+    
+    return y_tr + np.asarray([-as_width, as_width])

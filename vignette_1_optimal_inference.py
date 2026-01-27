@@ -1,4 +1,6 @@
 # %%
+%load_ext autoreload
+%autoreload 2
 import numpy as np
 import scipy
 import pandas as pd
@@ -119,7 +121,7 @@ def simulate_rep(mu, rep):
 # simulation params
 n_reps = 1000
 alphas = np.array(
-    [0.0125, 0.025, 0.05, 0.075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
+    [0.05, 0.075, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
 )
 # alphas = np.asarray([0.1, 0.5, 0.9, 0.95])
 n = 100
