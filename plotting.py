@@ -1,23 +1,29 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import numpy as np
 
-def plot_oracle(df_full, save_fig=True):
+def plot_oracle(df_full, strat = 'mu', scale=False, save_name=None):
     # _, ax = plt.subplots(figsize=(3.25, 1.75))
     # _, ax = plt.subplots(figsize=(3.6, 2.5))
-    mus = df_full['mu'].unique()
+    mus = df_full[strat].unique()
     print(mus)
     fig, axes = plt.subplots(1, 2, figsize=(4.25, 2.25))
     
     for ax, mu in zip(axes, mus):
-        df = df_full[df_full['mu'] == mu]
+        df = df_full[df_full[strat] == mu]
         ax.grid(True, alpha=0.3)
 
         # --- Oracle curve ---
         # alpha arbitrary
         oracle_df = (
-            df[(df["method"] == "oracle") & (df['alpha'] == 0.9)]
+            df[(df["method"] == "oracle") & (df['alpha'] == 0.05)]
             .sort_values("interval_width")
         )
+        
+        # If widening is scaled by SE, scale oracle CIs too post sorting
+        if scale:
+            # oracle_df['interval_width'] = oracle_df['interval_width'] * oracle_df['se']
+            oracle_df['interval_width'] = oracle_df['interval_width'] * np.mean(df['se'])
 
         ax.plot(
             (np.arange(len(oracle_df)) + 1) / len(oracle_df),
@@ -59,15 +65,16 @@ def plot_oracle(df_full, save_fig=True):
             label="Conditional"
         )
 
-        df_df = summary[(summary["method"] == "zoom_stepdown")].groupby("alpha", as_index=False).agg({"coverage": "mean", "interval_width": "mean"})
-        ax.plot(
-            # df_df["coverage"][::-1],
-            1 - df_df['alpha'][::-1],
-            df_df["interval_width"][::-1],
-            color="#ff7f00", linestyle="dashed",
-            linewidth=2,
-            label="Zoom"
-        )
+        if "zoom_stepdown" in summary["method"].values:
+            df_df = summary[(summary["method"] == "zoom_stepdown")].groupby("alpha", as_index=False).agg({"coverage": "mean", "interval_width": "mean"})
+            ax.plot(
+                # df_df["coverage"][::-1],
+                1 - df_df['alpha'][::-1],
+                df_df["interval_width"][::-1],
+                color="#ff7f00", linestyle="dashed",
+                linewidth=2,
+                label="Zoom"
+            )
 
         # Classic (points)
         naive_df = summary[(summary["method"] == "naive") & (summary['alpha'] == 0.05)]
@@ -110,9 +117,10 @@ def plot_oracle(df_full, save_fig=True):
     # axes[1].legend(loc="upper center", bbox_to_anchor=(0, -0.2), ncol=3, frameon=False)
 
     plt.tight_layout()
-    if save_fig:
+    if save_name is not None:
         plt.savefig(
-            f"figures/vignette_1/vignette-1_oracle-curves.png",
+            save_name,
+            # f"figures/vignette_1/vignette-1_oracle-curves.png",
             dpi=300,
             bbox_inches='tight',
         )
@@ -212,6 +220,14 @@ def plot_oracle_randomized(df_full, save_fig=True):
         plt.show()
 
 
-import pandas as pd
-df = pd.read_csv("data/vignette_1_optimal_inference_random_results.csv")
-plot_oracle_randomized(df)
+class MidpointNormalize(mcolors.Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        mcolors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        v_ext = np.max( [ np.abs(self.vmin), np.abs(self.vmax) ] )
+        x, y = [-v_ext, self.midpoint, v_ext], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+
+

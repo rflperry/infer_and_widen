@@ -375,3 +375,24 @@ def wc_alg_stability(y_tr, n, scale = 1, alpha=0.05, sigma=1):
     as_width = as_width.min()
     
     return y_tr + np.asarray([-as_width, as_width])
+
+# sandiwich covariance inference for OLS
+def sandwich_ci(X, y, alpha=0.05):
+    """
+    X: (n, p) design matrix (include intercept if desired)
+    y: (n,) response
+    beta_hat: (p,) estimated coefficients
+    """
+
+    # Mean estimation
+    XtX_inv = np.linalg.inv(X.T @ X)
+    beta_hat = XtX_inv @ X.T @ y
+
+    # Sandwich covariance (HC0)
+    resid = y - X @ beta_hat
+    S = np.diag(resid**2)
+    V = XtX_inv @ X.T @ S @ X @ XtX_inv
+    se = np.sqrt(np.diag(V))
+    z = norm.ppf(1 - alpha / 2)
+
+    return beta_hat + np.asarray([-z * se, z * se]), se

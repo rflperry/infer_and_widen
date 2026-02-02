@@ -58,7 +58,7 @@ def redundant_constr_LP(A_ineq, b_ineq, removed_indices, d):
         b_removed = b_ineq[i]
         b_ineq_no_i = np.delete(b_ineq, removed_indices + [i])
 
-        LP = linprog(-a_removed, A_ub=A_ineq_no_i, b_ub=b_ineq_no_i, bounds = (-np.Inf,np.Inf), method='simplex')
+        LP = linprog(-a_removed, A_ub=A_ineq_no_i, b_ub=b_ineq_no_i, bounds = (-np.inf,np.inf), method='simplex')
         LP_val = -LP.fun
 
         if LP_val <= b_removed + 0.000001: # fudge factor to get around numerical issues

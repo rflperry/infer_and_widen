@@ -164,5 +164,4 @@ df = pd.DataFrame(
 df.to_csv("data/vignette_1_optimal_inference_results.csv", index=False)
 
 # %%
-for mu in winner_mus:
-    plot_oracle(df)
+plot_oracle(df, strat='mu', save_name="figures/vignette_1/vignette-1_oracle-curves.png")
