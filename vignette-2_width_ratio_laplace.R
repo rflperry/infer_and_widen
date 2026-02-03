@@ -6,6 +6,10 @@
 
 library(ggplot2)
 library(dplyr)
+library(VGAM)
+library(MASS)
+library(tilting)
+library(truncnorm)
 
 NAN_KEY <- 99999
 
@@ -26,6 +30,9 @@ get_as_width <- function(scale, delta, p, sigma=1, alpha=0.05) {
   # Compute base AS width, two sided!!!
   as_width <- sigma * qnorm(1 - alpha * (1 - delta) * exp(-eta) / 2)
   
+  if (as_width == Inf) {
+    as_width <- sigma * qnorm(-alpha * (1 - delta) * exp(-eta) / 2, log.p=TRUE)
+  }
   return(as_width)
 }
 
@@ -132,6 +139,9 @@ for (rho in rho_range) {
   for (signal in signal_range) {
 
     grid_values <- expand.grid(var = var_range, p = p_range)
+
+    saveRDS(grid_values, file = "data/vignette-2_width_ratios.rds")
+
     grid_values$ratio <- mapply(get_width_ratio, grid_values$var, grid_values$p, rho=rho, signal=signal)
     
     grid_values %>% mutate(
