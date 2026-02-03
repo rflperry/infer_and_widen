@@ -134,13 +134,13 @@ grid["ratio"] = [
 #%%
 grid.to_csv("data/vignette_3_width_ratios_results.csv", index=False)
 
-temp_ratio = grid["ratio"].copy()
-grid.loc[grid["ratio"].isna(), "ratio"] = np.inf
-grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
+# temp_ratio = grid["ratio"].copy()
+# grid.loc[grid["ratio"].isna(), "ratio"] = np.inf
+# grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
 # %%
-heat = grid.pivot(index="signal", columns="r", values="ratio")
+grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
+heat = grid.pivot(index="r", columns="signal", values="ratio")
 
-# %%
 from plotting import MidpointNormalize
 
 norm = MidpointNormalize(
@@ -152,10 +152,11 @@ norm = MidpointNormalize(
 fig, ax = plt.subplots(figsize=(4.25, 2))
 
 im = ax.imshow(
-    heat.values[::-1],
+    heat.values,
     aspect='auto',  # Make tiles rectangles
     cmap="RdBu_r",
     norm=norm,
+    origin='lower'
 )
 
 # Colorbar
@@ -165,18 +166,14 @@ ax.set_xticks(np.arange(len(heat.columns)))
 ax.set_yticks(np.arange(len(heat.index)))
 # ax.set_xticklabels([, "", "", f"{heat.columns.values[-1]:.0e}"], fontsize=9)
 # ax.set_xticks([0, len(heat.columns) - 1])
-ax.set_xticklabels([f"{v:.0e}" for v in heat.columns.values], fontsize=9)
-ax.set_yticklabels(heat.index.values[::-1].round().astype(int), fontsize=9)
+ax.set_xticklabels(heat.columns.values, fontsize=9)
+ax.set_yticklabels(heat.index.values, fontsize=9)
 
-ax.set_xlabel("n", fontsize=11)
-ax.set_ylabel("Winner's mean", fontsize=11)
-
-# Theme_bw-ish
-ax.tick_params(labelsize=9)
-for spine in ax.spines.values():
-    spine.set_visible(True)
+ax.set_xlabel(r"Selection accuracy (λ₀)", fontsize=11)
+ax.set_ylabel(r"Signal (λ/ε)", fontsize=11)
 
 plt.tight_layout()
+
 plt.savefig("figures/vignette_3/vignette-3_width_ratio.png", dpi=300)
 plt.close()
 # plt.show()
