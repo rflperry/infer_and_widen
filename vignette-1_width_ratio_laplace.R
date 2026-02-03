@@ -11,9 +11,12 @@ fission_data <- function(Y, rep, scale) {
 }
 
 get_as_width <- function(nu, scale, n, alpha=0.05) {
-  h <- 2 * qnorm(1 - nu / (2*n) )
+  h <- 2 * qnorm(1 - nu / (2*n))
   eta <- h / scale
   as_width <- 2 * sigma * qnorm(1 - (alpha - nu) * exp(-eta) / 2)
+  if (as_width == Inf) {
+    as_width <- 2 * sigma * qnorm(- (alpha - nu) * exp(-eta) / 2, log.p=TRUE)
+  }
   return(as_width)
 }
 
@@ -93,13 +96,16 @@ library(dplyr)
 
 
 nu_range <- seq(0, 0.05, length.out = 20)
-n_reps <- 100
+n_reps <- 500
 sigma = 1
 n_range <- 10^seq(1, 6)
 var_range <- 2^(-seq(-4, 4, length.out=9))
 
 grid_values <- expand.grid(var = var_range, n = n_range)
 grid_values$ratio <- mapply(get_best_width_ratio, grid_values$var, grid_values$n)
+
+saveRDS(grid_values, file = "data/vignette-1_width_ratios.rds")
+
 grid_values <- grid_values %>% mutate(
   new_var = var + 1
 )
