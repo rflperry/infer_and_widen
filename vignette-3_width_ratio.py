@@ -17,6 +17,7 @@ from lasso_utils import (
     lasso_constraints_Xy_space,
 )
 import matplotlib.pyplot as plt
+import os
 
 n_reps = 100
 alpha = 0.05
@@ -24,10 +25,12 @@ alpha = 0.05
 n = 100
 p = 10
 
-n_jobs = 10
+n_jobs = int(os.environ.get("SLURM_CPUS_PER_TASK", 1))  # 8
 
-signal_range = np.asarray([1, 2, 3, 4, 5, 6])
-r_range = np.asarray([1, 1.5, 2])
+# signal_range = np.asarray([1, 2, 3, 4, 5, 6])
+signal_strength = 1.5
+r_range = np.asarray([0, 0.5, 1, 1.5, 2])
+rho_range = [0, 0.3, 0.6, 0.9]
 
 # signal_range = np.asarray([1, 3, 6])
 # r_range = np.asarray([1, 2])
@@ -45,7 +48,7 @@ def _single_rep(n, p, rho=0.3, sparsity=0.5, signal_strength=1, r=1, alpha=0.05)
         np.sqrt(1 - rho) * np.random.standard_normal((n, p))
         + np.sqrt(rho) * np.random.standard_normal(n)[:, None]
     )
-    X /= np.linalg.norm(X, axis=0)
+    # X /= np.linalg.norm(X, axis=0)
     mu = X @ beta_star
     y = mu + np.random.randn(n)
 
@@ -106,24 +109,27 @@ def get_width_ratio(n, p, signal, r, n_reps, rho=0.3, sparsity=0.5, alpha=0.05, 
     )
 
     # results = [_single_rep(mu_vec, Sigma, alpha, nu, beta, plausible_gap) for _ in range(n_reps)]
-
-    iw_widths = np.concat([res[0] for res in results])
-    hybrid_widths = np.concat([res[1] for res in results])
+    iw_widths = np.asarray([np.mean(res[0]) for res in results if res is not None])
+    hybrid_widths = np.asarray([np.mean(res[1]) for res in results if res is not None])
     # iw_widths, hybrid_widths = map(np.array, zip(*results))
 
     return iw_widths.mean() / hybrid_widths.mean()
 
 
 # Grid
-grid = pd.MultiIndex.from_product([signal_range, r_range], names=["signal", "r"]).to_frame(
+# grid = pd.MultiIndex.from_product([signal_range, r_range], names=["signal", "r"]).to_frame(
+#     index=False
+# )
+
+grid = pd.MultiIndex.from_product([rho_range, r_range], names=["rho", "r"]).to_frame(
     index=False
 )
 
 # %%
 # Compute ratios
 grid["ratio"] = [
-    get_width_ratio(n=n, p=p, signal=s, r=r, n_reps=n_reps, alpha=alpha, n_jobs=n_jobs)
-    for s, r in tqdm(zip(grid["signal"], grid["r"]))
+    get_width_ratio(n=n, p=p, rho=rho, signal=signal_strength, r=r, n_reps=n_reps, alpha=alpha, n_jobs=n_jobs)
+    for rho, r in tqdm(zip(grid["rho"], grid["r"]))
 ]
 
 # grid["ratio"] = Parallel(n_jobs=10)(
@@ -139,7 +145,7 @@ grid.to_csv("data/vignette_3_width_ratios_results.csv", index=False)
 # grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
 # %%
 grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
-heat = grid.pivot(index="r", columns="signal", values="ratio")
+heat = grid.pivot(index="r", columns="rho", values="ratio")
 
 from plotting import MidpointNormalize
 
@@ -169,7 +175,7 @@ ax.set_yticks(np.arange(len(heat.index)))
 ax.set_xticklabels(heat.columns.values, fontsize=9)
 ax.set_yticklabels(heat.index.values, fontsize=9)
 
-ax.set_xlabel(r"Selection accuracy (λ₀)", fontsize=11)
+ax.set_xlabel(r"Correlation", fontsize=11)
 ax.set_ylabel(r"Signal (λ/ε)", fontsize=11)
 
 plt.tight_layout()

@@ -132,56 +132,53 @@ get_width_ratio <- function(var, p, rho=0.5, sigma=1, alpha=0.05, signal=0.2) {
 p_range <- c(25, 50, 100, 200, 400)
 var_range <- 10^(seq(-2, 2, length.out = 5))
 
-rho_range <- c(0.5)
-signal_range <- c(0)
+rho <- 0.5
+signal <- 0
 
-for (rho in rho_range) {
-  for (signal in signal_range) {
+grid_values <- expand.grid(var = var_range, p = p_range)
 
-    grid_values <- expand.grid(var = var_range, p = p_range)
+grid_values$ratio <- mapply(get_width_ratio, grid_values$var, grid_values$p, rho=rho, signal=signal)
 
-    saveRDS(grid_values, file = "data/vignette-2_width_ratios.rds")
+saveRDS(grid_values, file = "data/vignette-2_width_ratios.rds")
 
-    grid_values$ratio <- mapply(get_width_ratio, grid_values$var, grid_values$p, rho=rho, signal=signal)
-    
-    grid_values %>% mutate(
-      temp_ratio = ratio,
-      ratio = ifelse(is.na(ratio), Inf, ratio)
-    )
-    
-    plot_df <- grid_values %>% mutate(
-      temp_ratio = ratio, 
-      ratio = ifelse(is.na(ratio), Inf, ratio),
-      ratio = ifelse(!is.na(temp_ratio) & temp_ratio == Inf, NaN, ratio),
-      ratio = log2(ratio)
-    )
-    g <- ggplot(
-      # Forces AS width of Inf due to computational limits to be plotted as black,
-      # vs any NAs plotted grey
-      plot_df,
-      aes(x = p, y = var, fill = ratio)) +
-      geom_tile() +
-      scale_fill_distiller(
-        palette = "RdBu",
-        na.value="black",
-        limits=c(-1,1)*max(abs(plot_df$ratio), na.rm=TRUE),
-        # limits=c(-4, 4),
-        # trans="log2",
-        direction = -1
-        ) +
-      labs(
-        x = "p",
-        y = "Added noise",
-        fill = "Width Ratio\n(I&W / S&C) "
-      ) +
-      scale_y_log10() +
-      scale_x_continuous(trans='log2') +
-      # scale_x_log10() +
-      theme_bw() +
-      theme(
-        text = element_text(size = 11),
-      )
-    
-    ggsave(paste0("figures/vignette_2/vignette-2_laplace_width_ratio_rho=", rho, "_signal=", signal, ".png"), width = 4, height = 2, unit = "in")
-  }
-}
+grid_values %>% mutate(
+  temp_ratio = ratio,
+  ratio = ifelse(is.na(ratio), Inf, ratio)
+)
+
+plot_df <- grid_values %>% mutate(
+  temp_ratio = ratio, 
+  ratio = ifelse(is.na(ratio), Inf, ratio),
+  ratio = ifelse(!is.na(temp_ratio) & temp_ratio == Inf, NaN, ratio),
+  ratio = log2(ratio)
+)
+g <- ggplot(
+  # Forces AS width of Inf due to computational limits to be plotted as black,
+  # vs any NAs plotted grey
+  plot_df,
+  aes(x = p, y = var, fill = ratio)) +
+  geom_tile() +
+  # scale_fill_distiller(
+  #   palette = "RdBu",
+  #   na.value="black",
+  #   limits=c(-1,1)*max(abs(plot_df$ratio), na.rm=TRUE),
+  #   # limits=c(-4, 4),
+  #   # trans="log2",
+  #   direction = -1
+  #   ) +
+  scale_fill_distiller(palette = "Reds", direction = 1) +
+  labs(
+    x = "p",
+    y = "Added noise",
+    fill = "Width Ratio\n(I&W / S&C) "
+  ) +
+  scale_y_log10() +
+  scale_x_continuous(trans='log2') +
+  # scale_x_log10() +
+  theme_bw() +
+  theme(
+    text = element_text(size = 11),
+  )
+
+ggsave(paste0("figures/vignette_2/vignette-2_laplace_width_ratio_rho=", rho, "_signal=", signal, ".png"), width = 4, height = 2, unit = "in")
+

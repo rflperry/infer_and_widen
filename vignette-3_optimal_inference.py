@@ -134,7 +134,7 @@ def simulate_rep(
         np.sqrt(1 - rho) * np.random.standard_normal((n, p))
         + np.sqrt(rho) * np.random.standard_normal(n)[:, None]
     )
-    X /= np.linalg.norm(X, axis=0)
+    # X /= np.linalg.norm(X, axis=0)
     mu = X @ beta_star
     y = mu + np.random.randn(n)
 
@@ -148,6 +148,20 @@ def simulate_rep(
         except Exception as e:
             print(e)
             continue
+        
+        # k = np.random.choice(len(beta_M))
+        # local_results += [
+        #     rep,
+        #     alpha,
+        #     rho,
+        #     sparsity,
+        #     signal_strength,
+        #     r,
+        #     "oracle",
+        #     2 * np.abs(beta_M - beta_M_star)[k] / se[k],
+        #     se[k],
+        #     np.nan,
+        # ]
 
         # here, we scale the bias by the sandwich standard error as would be done
         # in the naive setting
@@ -166,6 +180,19 @@ def simulate_rep(
             ]
 
         for method, conf_int in zip(ci_names, conf_ints):
+            # covered = int(conf_int[k][0] <= beta_M_star[k] <= conf_int[k][1])
+            # local_results += [
+            #     rep,
+            #     alpha,
+            #     rho,
+            #     sparsity,
+            #     signal_strength,
+            #     r,
+            #     method,
+            #     conf_int[k][1] - conf_int[k][0],
+            #     se[k],
+            #     covered,
+            # ]
             for se_i, beta_star_i, conf_int_i in zip(
                 se, beta_M_star, np.asarray(conf_int).T
             ):
@@ -208,7 +235,7 @@ alphas = np.array(
 )
 # alphas = np.asarray([0.05, 0.5, 0.90])
 target_alpha = 0.05
-rho = 0.3
+rho = 0.9
 sparsity = 0.5
 n = 100
 p = 10
@@ -231,7 +258,7 @@ ci_names = ["cond", "hybrid", "naive", "SI", "LSI"]
 
 Sigma = np.eye(n)
 signal_strength = 1.5 # [0.02, 0.002]
-r_values = [1, 4]  # 1
+r_values = [0, 1]  # 1
 
 np.random.seed(42)
 for r in r_values:
@@ -267,12 +294,13 @@ df = pd.DataFrame(np.array(results).reshape(-1, len(columns)), columns=columns).
 )
 
 # %%
-df.to_csv("data/vignette_3_optimal_inference_results.csv", index=False)
+df.to_csv("data/vignette_3_optimal_inference_results_v2.csv", index=False)
 
 # %%
 plot_oracle(
     df,
     strat="r",
     scale=True,
-    save_name="figures/vignette_3/vignette-3_oracle_curves.png",
+    save_name="figures/vignette_3/vignette-3_oracle_curves_v2.png",
+    n_reps=n_reps,
 )
