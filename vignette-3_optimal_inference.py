@@ -68,7 +68,7 @@ def trial(X, y, mu, alpha, nu, lam, target_alpha=0.05):
         eta = X_M_pinv[k, :]
         SI_truncation = (simultaneous_proj[1][k] - simultaneous_proj[0][k]) / 2
         [cond_ints[0][k], cond_ints[1][k]] = conditional_inference(
-            y, np.eye(n), A, b, eta, alpha=alpha / len(M_y)
+            y, np.eye(n), A, b, eta, alpha=alpha #  / len(M_y)
         )
         [hybrid_ints[0][k], hybrid_ints[1][k]] = hybrid_inference(
             y,
@@ -76,8 +76,8 @@ def trial(X, y, mu, alpha, nu, lam, target_alpha=0.05):
             A,
             b,
             eta,
-            alpha=alpha / len(M_y),
-            beta=nu / len(M_y),
+            alpha=alpha, #  / len(M_y),
+            beta=nu, #  / len(M_y),
             SI_halfwidth=SI_truncation,
         )
 
@@ -294,13 +294,13 @@ df = pd.DataFrame(np.array(results).reshape(-1, len(columns)), columns=columns).
 )
 
 # %%
-df.to_csv("data/vignette_3_optimal_inference_results_v2.csv", index=False)
+df.to_csv("data/vignette_3_optimal_inference_results_v3.csv", index=False)
 
 # %%
 plot_oracle(
     df,
     strat="r",
     scale=True,
-    save_name="figures/vignette_3/vignette-3_oracle_curves_v2.png",
+    save_name="figures/vignette_3/vignette-3_oracle_curves.png",
     n_reps=n_reps,
 )

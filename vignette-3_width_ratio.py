@@ -89,8 +89,8 @@ def _single_rep(n, p, rho=0.3, sparsity=0.5, signal_strength=1, r=1, alpha=0.05)
             A,
             b,
             eta,
-            alpha=alpha / len(M_y),
-            beta=nu / len(M_y),
+            alpha=alpha, # / len(M_y),
+            beta=nu, #  / len(M_y),
             SI_halfwidth=SI_truncation,
         )
 
@@ -144,7 +144,7 @@ grid.to_csv("data/vignette_3_width_ratios_results.csv", index=False)
 # grid.loc[grid["ratio"].isna(), "ratio"] = np.inf
 # grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
 # %%
-grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
+# grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
 heat = grid.pivot(index="r", columns="rho", values="ratio")
 
 from plotting import MidpointNormalize
