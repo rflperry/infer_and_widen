@@ -144,7 +144,7 @@ grid.to_csv("data/vignette_3_width_ratios_results.csv", index=False)
 # grid.loc[grid["ratio"].isna(), "ratio"] = np.inf
 # grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
 # %%
-# grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
+grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
 heat = grid.pivot(index="r", columns="rho", values="ratio")
 
 from plotting import MidpointNormalize
@@ -155,7 +155,7 @@ norm = MidpointNormalize(
     vmax=max(1 + 1e-6, np.nanmax(heat.values)),
 )
 
-fig, ax = plt.subplots(figsize=(4.25, 2))
+fig, ax = plt.subplots(figsize=(3.5, 2))
 
 im = ax.imshow(
     heat.values,
@@ -176,7 +176,7 @@ ax.set_xticklabels(heat.columns.values, fontsize=9)
 ax.set_yticklabels(heat.index.values, fontsize=9)
 
 ax.set_xlabel(r"Correlation", fontsize=11)
-ax.set_ylabel(r"Signal (λ/ε)", fontsize=11)
+ax.set_ylabel(r"Signal", fontsize=11)
 
 plt.tight_layout()
 

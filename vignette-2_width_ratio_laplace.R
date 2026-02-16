@@ -21,7 +21,7 @@ n_reps <- 250
 sparsity <- 0.5
 
 get_as_width <- function(scale, delta, p, sigma=1, alpha=0.05) {
-  if (delta > 1 | delta < 0) {
+  if (delta > 1 || delta < 0) {
     return(Inf)
   }
   # c <- sqrt(eps / ( 1 - eps ))
@@ -133,13 +133,13 @@ p_range <- c(25, 50, 100, 200, 400)
 var_range <- 10^(seq(-2, 2, length.out = 5))
 
 rho <- 0.5
-signal <- 0
+signal <- 7/50
 
 grid_values <- expand.grid(var = var_range, p = p_range)
 
 grid_values$ratio <- mapply(get_width_ratio, grid_values$var, grid_values$p, rho=rho, signal=signal)
 
-saveRDS(grid_values, file = "data/vignette-2_width_ratios.rds")
+# saveRDS(grid_values, file = "data/vignette-2_width_ratios.rds")
 
 grid_values %>% mutate(
   temp_ratio = ratio,
@@ -170,7 +170,7 @@ g <- ggplot(
   labs(
     x = "p",
     y = "Added noise",
-    fill = "Width Ratio\n(I&W / S&C) "
+    fill = "Width Ratio\n(I&W / DF) "
   ) +
   scale_y_log10() +
   scale_x_continuous(trans='log2') +
