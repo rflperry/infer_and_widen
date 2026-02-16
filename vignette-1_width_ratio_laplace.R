@@ -124,7 +124,7 @@ g <- ggplot(
   labs(
     x = "n",
     y = "Added noise",
-    fill = "Width Ratio\n(I&W / S&C)"
+    fill = "Width Ratio\n(I&W / DF)"
   ) +
   scale_y_log10() +
   scale_x_log10() +
