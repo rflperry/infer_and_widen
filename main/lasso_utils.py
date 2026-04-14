@@ -7,7 +7,7 @@ from sklearn import linear_model
 import scipy
 import math
 
-from utils import powerset
+from main.utils import powerset
 
 """
     LASSO selection event

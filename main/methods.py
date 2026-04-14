@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.optimize import brentq
 from scipy.stats import truncnorm, norm
-from utils import max_z_width, max_Xz
-from lasso_utils import all_LASSO_models_and_signs_in_box
+from main.utils import max_z_width, max_Xz
+from main.lasso_utils import all_LASSO_models_and_signs_in_box
 
 """
 Conditional inference

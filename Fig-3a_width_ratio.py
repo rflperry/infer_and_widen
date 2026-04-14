@@ -6,14 +6,14 @@ import pandas as pd
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from sklearn import linear_model
-from methods import (
+from main.methods import (
     hybrid_inference,
     plausible_LASSO_models_and_signs,
     locally_simultaneous_LASSO,
     simultaneous_PoSI,
 )
-from utils import powerset, X_in_selected_model
-from lasso_utils import (
+from main.utils import powerset, X_in_selected_model
+from main.lasso_utils import (
     lasso_constraints_Xy_space,
 )
 import matplotlib.pyplot as plt
@@ -147,7 +147,7 @@ grid.to_csv("data/vignette_3_width_ratios_results.csv", index=False)
 grid = pd.read_csv("data/vignette_3_width_ratios_results.csv")
 heat = grid.pivot(index="r", columns="rho", values="ratio")
 
-from plotting import MidpointNormalize
+from main.plotting import MidpointNormalize
 
 norm = MidpointNormalize(
     vmin=min(1 - 1e-6, np.nanmin(heat.values)),

@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from methods import (
+from main.methods import (
     hybrid_inference,
     max_z_width,
     plausible_winners,
 )
-from utils import inference_on_winner_polyhedron
+from main.utils import inference_on_winner_polyhedron
 import matplotlib.pyplot as plt
 
 
@@ -131,7 +131,7 @@ grid.loc[(~temp_ratio.isna()) & (temp_ratio == np.inf), "ratio"] = np.nan
 heat = grid.pivot(index="C", columns="n", values="ratio")
 
 # %%
-from plotting import MidpointNormalize
+from main.plotting import MidpointNormalize
 
 norm = MidpointNormalize(
     vmin=min(1 - 1e-6, np.nanmin(heat.values)),

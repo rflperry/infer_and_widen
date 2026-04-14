@@ -4,7 +4,7 @@ import scipy
 import pandas as pd
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from methods import (
+from main.methods import (
     conditional_inference,
     locally_simultaneous_inference,
     hybrid_inference,
@@ -12,8 +12,8 @@ from methods import (
     plausible_winners,
     zoom_stepdown,
 )
-from utils import inference_on_winner_polyhedron
-from plotting import plot_oracle
+from main.utils import inference_on_winner_polyhedron
+from main.plotting import plot_oracle
 
 
 # %%

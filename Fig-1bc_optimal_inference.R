@@ -124,12 +124,12 @@ for (eps in eps_range) {
   }
   
   df_widths <- c()
-  for (alpha_i in seq(length(alphas))) {
+  for (alpha_i in seq_along(alphas)) {
     df_widths <- c(df_widths, mean(df_widths_alpha[[alpha_i]]))
   }
   
   df_coverages <- c()
-  for (alpha_i in seq(length(alphas))) {
+  for (alpha_i in seq_along(alphas)) {
     df_coverages <- c(df_coverages, mean(df_coverages_alpha[[alpha_i]]))
   }
   

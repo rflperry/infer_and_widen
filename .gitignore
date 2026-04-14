@@ -1,2 +1,50 @@
+# Environments
+.env
+.venv
+env/
+env3/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# IDE
+.vscode/
+
+# project_misc
 logs/*
+bak/*
+data/*
+figures/*
 slurm.sh
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+selectinf/
+selectinf2/
+process_glasgow/
+R/
+
+.pytest_cache/
+
+# Claude Code
+CLAUDE.md
